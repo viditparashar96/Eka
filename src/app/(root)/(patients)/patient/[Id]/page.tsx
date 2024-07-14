@@ -139,6 +139,7 @@ const Page = () => {
               onFocus={() => setIsChatVisible(true)}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
             />
             <button
               className="text-sm text-primary-500"
