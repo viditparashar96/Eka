@@ -1,4 +1,4 @@
-# Products Dashboard
+# Doctor's Dashboard
 
 This repository contains the source code for Eka Doctor's Dashboard developed using Nextjs14. The App allows you to edit the file using Fs module in nextjs itself.
 

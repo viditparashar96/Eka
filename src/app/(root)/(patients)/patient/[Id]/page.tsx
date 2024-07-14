@@ -8,10 +8,11 @@ import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Select from "@mui/material/Select";
 import { AnimatePresence, motion } from "framer-motion";
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 const names = ["Generated Soap notes", "Note2", "Note3", "Note4"];
-const Page = ({ params }: Params) => {
+const Page = () => {
+  const params: any = useParams();
   const [isChatVisible, setIsChatVisible] = useState(false);
   const foundedUser = patientsList.find((user) => user.id == params.Id);
   const [notes, setNotes] = useState<any>("Generated Soap notes");

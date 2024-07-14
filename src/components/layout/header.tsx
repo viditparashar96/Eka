@@ -123,6 +123,7 @@ export default function Header() {
             anchor="right"
             open={open}
             onClose={toggleDrawer(false)}
+            //@ts-ignore
             onOpen={toggleDrawer(true)}
           >
             <Box
