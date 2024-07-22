@@ -3,6 +3,7 @@ import Sidebar from "@/components/common/sidebar";
 import WaveAnimation from "@/components/WaveAnimation";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
+import axios from "axios";
 import { useRef, useState } from "react";
 
 export default function Home() {
@@ -50,6 +51,28 @@ export default function Home() {
     }
   };
 
+  const handleGenerateNote = async () => {
+    if (!audioBlob) return;
+    console.log("audioBlob===>", audioBlob);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = async () => {
+        const base64Audio = reader.result as string;
+
+        const response = await axios.post("/api/transcribe", {
+          audioBlob: base64Audio,
+        });
+        console.log("response===>", response);
+        // if (response.status === 200) {
+        //   console.log("Note generated:", response.data);
+        // }
+      };
+    } catch (error) {
+      console.error("Error generating note:", error);
+    }
+  };
+
   return (
     <div
       className="h-screen flex relative w-full bg-white"
@@ -81,7 +104,10 @@ export default function Home() {
             <source src={URL.createObjectURL(audioBlob)} type="audio/wav" />
           </audio>
         )}
-        <button className="px-6 py-2 bg-primary-500 text-white rounded-md shadow hover:bg-blue-600 transition-colors duration-300">
+        <button
+          className="px-6 py-2 bg-primary-500 text-white rounded-md shadow hover:bg-blue-600 transition-colors duration-300"
+          onClick={handleGenerateNote}
+        >
           Generate Note
         </button>
       </div>
