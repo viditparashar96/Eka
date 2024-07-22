@@ -1,5 +1,6 @@
 "use client";
 import Sidebar from "@/components/common/sidebar";
+import WaveAnimation from "@/components/WaveAnimation";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import { useRef, useState } from "react";
@@ -56,10 +57,11 @@ export default function Home() {
     >
       <Sidebar />
       <div className="flex flex-col items-center justify-center w-full relative">
-        <div className="mb-8">
+        <div className="mb-8 relative w-24 h-24">
+          <WaveAnimation isRecording={isRecording} />
           <button
             onClick={handlePlayPause}
-            className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300"
+            className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300 relative z-10"
           >
             {isRecording ? (
               <PauseCircleIcon
