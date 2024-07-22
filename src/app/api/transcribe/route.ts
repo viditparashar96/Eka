@@ -21,7 +21,6 @@ export const POST = async (req: NextRequest) => {
         filename: "audio.wav",
         contentType: "audio/wav",
       });
-      console;
       const response = await axios.post(
         `${env_config.azure_endpoint}/openai/deployments/${env_config.azure_deployment_name}/audio/transcriptions?api-version=2024-02-01`,
         formData,
