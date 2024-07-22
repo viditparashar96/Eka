@@ -1,4 +1,3 @@
-// components/WaveAnimation.tsx
 import React from "react";
 
 const WaveAnimation: React.FC<{ isRecording: boolean }> = ({ isRecording }) => {
