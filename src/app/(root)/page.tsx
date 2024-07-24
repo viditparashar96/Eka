@@ -4,7 +4,7 @@ import { RecordVoiceOver, StopCircleOutlined } from "@mui/icons-material";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import axios from "axios";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -12,6 +12,59 @@ export default function Home() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
+  const animationIdRef = useRef<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const canvasCtx = canvas.getContext("2d");
+
+      const draw = () => {
+        if (!canvasCtx || !analyserRef.current || !dataArrayRef.current) {
+          return;
+        }
+
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        const barWidth = (WIDTH / analyserRef.current.frequencyBinCount) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for (let i = 0; i < analyserRef.current.frequencyBinCount; i++) {
+          barHeight = dataArrayRef.current[i];
+
+          canvasCtx.fillStyle = "rgb(255, 20, 147)";
+          canvasCtx.fillRect(
+            x,
+            HEIGHT - barHeight / 2,
+            barWidth,
+            barHeight / 2
+          );
+
+          x += barWidth + 1;
+        }
+
+        animationIdRef.current = requestAnimationFrame(draw);
+      };
+
+      draw();
+    }
+
+    return () => {
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+    };
+  }, [isRecording]);
 
   const handlePlayPause = () => {
     if (!isRecording) {
@@ -28,6 +81,15 @@ export default function Home() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
 
+      audioContextRef.current = new AudioContext();
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+      const bufferLength = analyserRef.current.frequencyBinCount;
+      dataArrayRef.current = new Uint8Array(bufferLength);
+
+      source.connect(analyserRef.current);
+
       mediaRecorderRef.current.ondataavailable = (event: BlobEvent) => {
         audioChunksRef.current.push(event.data);
       };
@@ -36,6 +98,9 @@ export default function Home() {
         const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
         setAudioBlob(blob);
         audioChunksRef.current = [];
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+        }
       };
 
       mediaRecorderRef.current.start();
@@ -92,7 +157,13 @@ export default function Home() {
     >
       <Sidebar />
       <div className="flex flex-col items-center justify-center w-full relative">
-        <div className="mb-8 flex ">
+        <canvas
+          ref={canvasRef}
+          width={340}
+          height={140}
+          className="border mt-8"
+        ></canvas>
+        <div className="mb-8 flex mt-4">
           <button
             onClick={handlePlayPause}
             className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300 z-50"
