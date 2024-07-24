@@ -1,15 +1,13 @@
-import Header from '@/components/layout/header'
-import React from 'react'
+import Header from "@/components/layout/header";
+import React from "react";
 
-const Layout = ({children}:{children:React.ReactNode}) => {
+const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='w-full  bg-red-400 h-screen'
-    
-    >
-        <Header />
-        {children}
+    <div className="w-full bg-white h-screen">
+      <Header />
+      {children}
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

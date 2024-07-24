@@ -88,7 +88,7 @@ export default function Home() {
   return (
     <div
       className="h-screen flex relative w-full bg-white"
-      style={{ height: "calc(100vh - 100px)" }}
+      style={{ height: "calc(100vh - 64px)" }}
     >
       <Sidebar />
       <div className="flex flex-col items-center justify-center w-full relative">

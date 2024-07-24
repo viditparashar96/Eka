@@ -17,8 +17,8 @@ const Sidebar = () => {
   };
   return (
     <div
-      className="w-74 p-4 bg-white border-r-2 border-gray-200 overflow-y-auto sm:block hidden"
-      style={{ height: "calc(100vh - 100px)" }}
+      className="w-74 p-4   border-r-2 border-gray-200 overflow-y-auto sm:block hidden"
+      style={{ height: "calc(100vh - 64px)" }}
     >
       <button className="w-full px-4 py-2 mb-4 text-primary-500 font-semibold bg-blue-100 rounded">
         START A NEW VISIT
