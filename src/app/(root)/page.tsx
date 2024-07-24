@@ -1,6 +1,6 @@
 "use client";
 import Sidebar from "@/components/common/sidebar";
-import WaveAnimation from "@/components/WaveAnimation";
+import { RecordVoiceOver, StopCircleOutlined } from "@mui/icons-material";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import axios from "axios";
@@ -8,6 +8,7 @@ import { useRef, useState } from "react";
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -15,8 +16,10 @@ export default function Home() {
   const handlePlayPause = () => {
     if (!isRecording) {
       startRecording();
+    } else if (isPaused) {
+      resumeRecording();
     } else {
-      stopRecording();
+      pauseRecording();
     }
   };
 
@@ -26,13 +29,11 @@ export default function Home() {
       mediaRecorderRef.current = new MediaRecorder(stream);
 
       mediaRecorderRef.current.ondataavailable = (event: BlobEvent) => {
-        console.log("audio chunks===>", event);
         audioChunksRef.current.push(event.data);
       };
 
       mediaRecorderRef.current.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-        console.log("blob===>", blob);
         setAudioBlob(blob);
         audioChunksRef.current = [];
       };
@@ -44,16 +45,30 @@ export default function Home() {
     }
   };
 
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
+    }
+  };
+
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setIsPaused(false);
     }
   };
 
   const handleGenerateNote = async () => {
     if (!audioBlob) return;
-    console.log("audioBlob===>", audioBlob);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
@@ -64,9 +79,6 @@ export default function Home() {
           audioBlob: base64Audio,
         });
         console.log("response===>", response);
-        // if (response.status === 200) {
-        //   console.log("Note generated:", response.data);
-        // }
       };
     } catch (error) {
       console.error("Error generating note:", error);
@@ -80,24 +92,44 @@ export default function Home() {
     >
       <Sidebar />
       <div className="flex flex-col items-center justify-center w-full relative">
-        <div className="mb-8 relative w-24 h-24">
-          <WaveAnimation isRecording={isRecording} />
+        <div className="mb-8">
           <button
             onClick={handlePlayPause}
-            className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300 relative z-10"
+            className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300 z-50"
           >
             {isRecording ? (
-              <PauseCircleIcon
+              isPaused ? (
+                <PlayCircleIcon
+                  style={{ fontSize: 50 }}
+                  className="text-white"
+                />
+              ) : (
+                <PauseCircleIcon
+                  style={{ fontSize: 50 }}
+                  className="text-white"
+                />
+              )
+            ) : (
+              <RecordVoiceOver
                 style={{ fontSize: 50 }}
                 className="text-white"
               />
-            ) : (
-              <PlayCircleIcon style={{ fontSize: 50 }} className="text-white" />
             )}
           </button>
+          {isRecording && (
+            <button
+              onClick={stopRecording}
+              className="w-24 h-24 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors duration-300 z-50 ml-4"
+            >
+              <StopCircleOutlined
+                style={{ fontSize: 50 }}
+                className="text-white"
+              />
+            </button>
+          )}
         </div>
         <p className="text-gray-700 mb-6">
-          Press &apos;Play&apos; to capture the visit
+          Press &apos;Record&apos; to capture the visit
         </p>
         {audioBlob && (
           <audio controls>
@@ -105,8 +137,8 @@ export default function Home() {
           </audio>
         )}
         <button
-          className="px-6 py-2 bg-primary-500 text-white rounded-md shadow hover:bg-blue-600 transition-colors duration-300"
           onClick={handleGenerateNote}
+          className="px-6 py-2 bg-primary-500 text-white rounded-md shadow hover:bg-blue-600 transition-colors duration-300 z-50"
         >
           Generate Note
         </button>
