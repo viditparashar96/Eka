@@ -92,7 +92,7 @@ export default function Home() {
     >
       <Sidebar />
       <div className="flex flex-col items-center justify-center w-full relative">
-        <div className="mb-8">
+        <div className="mb-8 flex ">
           <button
             onClick={handlePlayPause}
             className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300 z-50"
