@@ -258,7 +258,6 @@ export default function Home() {
                 </motion.div>
               )}
             </AnimatePresence>
-
             {isRecording && (
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
@@ -296,6 +295,14 @@ export default function Home() {
                 </div>
               </motion.div>
             )}
+            <div className=" flex items-center justify-center mt-4 gap-2">
+              <div className=" w-[60px] h-[0.2px] bg-black"></div>
+              <p className=" text-sm">or</p>
+              <div className=" w-[60px] h-[0.2px] bg-black"></div>
+            </div>
+            <h1 className=" text-center text-sm opacity-60">
+              Drag in a pre-recorded visit.
+            </h1>
           </div>
 
           {audioBlob && (
