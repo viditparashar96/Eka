@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  admin      Admin?
+  superAdmin SuperAdmin?
+  physician  Physician?
+  conversationsInitiated Conversation[] @relation("Initiator")
+  conversationsReceived  Conversation[] @relation("Receiver")
+}
+
+model Admin {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model SuperAdmin {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Physician {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Conversation {
+  id            Int      @id @default(autoincrement())
+  initiatorId   Int
+  receiverId    Int
+  messagesId    String   
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  initiator     User     @relation("Initiator", fields: [initiatorId], references: [id])
+  receiver      User     @relation("Receiver", fields: [receiverId], references: [id])
+}
+enum Role {
+  ADMIN
+  SUPERADMIN
+  PHYSICIAN
+}
