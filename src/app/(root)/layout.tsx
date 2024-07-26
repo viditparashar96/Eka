@@ -1,17 +1,13 @@
+import FloatingButton from "@/components/common/floatingButton";
 import Header from "@/components/layout/header";
-import AddIcon from "@mui/icons-material/Add";
-import Fab from "@mui/material/Fab";
+
 import React from "react";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className=" bg-yellow-400" style={{ height: "calc(100vh - 64px)" }}>
+    <div className=" " style={{ height: "calc(100vh - 64px)" }}>
       <Header />
       <main className="w-full ">{children}</main>
-      <div className="fixed bottom-16 right-16">
-        <Fab color="primary" aria-label="add">
-          <AddIcon />
-        </Fab>
-      </div>
+      <FloatingButton />
     </div>
   );
 };

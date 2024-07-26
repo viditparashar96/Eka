@@ -304,7 +304,7 @@ export default function Home() {
             </audio>
           )}
 
-          <Dialog open={open} onClose={handleDialogClose}>
+          <Dialog open={open} onClose={handleDialogClose} fullWidth>
             <DialogTitle>Patient Information</DialogTitle>
             <DialogContent>
               <DialogContentText>
