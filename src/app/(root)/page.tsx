@@ -1,8 +1,6 @@
 "use client";
 import Sidebar from "@/components/common/sidebar";
-import { RecordVoiceOver, StopCircleOutlined } from "@mui/icons-material";
-import PauseCircleIcon from "@mui/icons-material/PauseCircle";
-import PlayCircleIcon from "@mui/icons-material/PlayCircle";
+import { Mic, PauseCircle, PlayCircle } from "@mui/icons-material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -11,6 +9,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
@@ -59,7 +58,7 @@ export default function Home() {
           canvasCtx.fillStyle = "rgb(255, 20, 147)";
           canvasCtx.fillRect(
             x,
-            HEIGHT - barHeight / 2,
+            HEIGHT - barHeight / 5,
             barWidth,
             barHeight / 2
           );
@@ -150,7 +149,8 @@ export default function Home() {
     setOpen(true);
   };
 
-  const handleDialogClose = () => {
+  const handleDialogClose = (e?: any, reason?: string) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") return;
     setOpen(false);
   };
 
@@ -227,62 +227,83 @@ export default function Home() {
               </div>
             </div>
           )}
-          <div className="mb-8 flex">
-            <button
-              onClick={handlePlayPause}
-              className="w-24 h-24 bg-primary-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors duration-300 z-50"
-            >
-              {isRecording ? (
-                isPaused ? (
-                  <PlayCircleIcon
-                    style={{ fontSize: 50 }}
-                    className="text-white"
-                  />
-                ) : (
-                  <PauseCircleIcon
-                    style={{ fontSize: 50 }}
-                    className="text-white"
-                  />
-                )
+          <div className=" mb-8 ">
+            <AnimatePresence mode="wait">
+              {!isRecording ? (
+                <motion.div
+                  key="capture"
+                  className="flex flex-col items-center justify-center space-y-4"
+                  initial={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -40 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <h1 className="text-2xl">Start a visit</h1>
+                  <button
+                    onClick={handlePlayPause}
+                    className="px-4 bg-[#051D2F] text-[12px] flex items-center justify-center gap-1 uppercase text-white py-2 rounded-[100px] shadow hover:bg-[#051D2F] transition-colors duration-300 z-50"
+                  >
+                    <Mic fontSize="small" />
+                    Capture visit
+                  </button>
+                </motion.div>
               ) : (
-                <RecordVoiceOver
-                  style={{ fontSize: 50 }}
-                  className="text-white"
-                />
+                <motion.div
+                  key="listening"
+                  className="flex flex-col items-center justify-center space-y-4"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 1 }}
+                >
+                  <p className="text-xl">Listening...</p>
+                </motion.div>
               )}
-            </button>
+            </AnimatePresence>
+
             {isRecording && (
-              <button
-                onClick={stopRecording}
-                className="w-24 h-24 bg-red-500 rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors duration-300 z-50 ml-4"
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1 }}
               >
-                <StopCircleOutlined
-                  style={{ fontSize: 50 }}
-                  className="text-white"
+                <canvas
+                  ref={canvasRef}
+                  width={300}
+                  height={40}
+                  className=" mt-8"
                 />
-              </button>
+                <div className="flex gap-4 mt-4 items-center justify-center">
+                  <button
+                    onClick={() => {
+                      stopRecording();
+                      handleDialogOpen();
+                    }}
+                    className="px-4 bg-[#051D2F] text-[12px] flex items-center justify-center gap-1 uppercase text-white py-2 rounded-[100px] shadow hover:bg-[#051D2F] transition-colors duration-300 z-50"
+                  >
+                    <Mic fontSize="small" />
+                    End Visit
+                  </button>
+                  <button
+                    onClick={handlePlayPause}
+                    className="px-4 bg-[#051D2F] text-[12px] flex items-center justify-center gap-1 uppercase text-white py-2 rounded-[100px] shadow hover:bg-[#051D2F] transition-colors duration-300 z-50"
+                  >
+                    {isPaused ? (
+                      <PlayCircle fontSize="small" />
+                    ) : (
+                      <PauseCircle fontSize="small" />
+                    )}
+                    {isPaused ? "Resume" : "Pause"}
+                  </button>
+                </div>
+              </motion.div>
             )}
           </div>
-          <p className="text-gray-700 mb-6">
-            Press &apos;Record&apos; to capture the visit
-          </p>
+
           {audioBlob && (
             <audio controls>
               <source src={URL.createObjectURL(audioBlob)} type="audio/wav" />
             </audio>
           )}
-          <button
-            onClick={handleDialogOpen}
-            className="px-6 py-2 bg-primary-500 text-white rounded-md shadow hover:bg-blue-600 transition-colors duration-300 z-50"
-          >
-            Generate Note
-          </button>
-          <canvas
-            ref={canvasRef}
-            width={640}
-            height={240}
-            className="border mt-8"
-          ></canvas>
+
           <Dialog open={open} onClose={handleDialogClose}>
             <DialogTitle>Patient Information</DialogTitle>
             <DialogContent>
