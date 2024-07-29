@@ -1,10 +1,12 @@
 "use client";
+import { useTranscription } from "@/contexts/TranscriptionContext";
 import { FileUpload, Mic } from "@mui/icons-material";
 import AddIcon from "@mui/icons-material/Add";
 import Fab from "@mui/material/Fab";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import PatientInfoDialog from "./patientInfoDialog";
 const container = {
   hidden: {
     translateY: 50,
@@ -36,15 +38,43 @@ const itemC = {
 };
 const FloatingButton = () => {
   const router = useRouter();
+  const {
+    handleDialogClose,
+    handleDialogOpen,
+    handleGenerateNote,
+    open,
+    setOpen,
+    setFile,
+    setPatientName,
+    setDob,
+    patientName,
+    dob,
+  } = useTranscription();
   const [isFabEnabled, setIsFabEnabled] = useState(false);
 
   const toggleFAB = useCallback(() => {
     setIsFabEnabled((prevState) => !prevState);
   }, []);
 
+  const handleFileChange = useCallback((e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFile(file);
+      handleDialogOpen();
+    }
+  }, []);
+
   return (
     // FAB button container
     <div className=" bg-transparent h-16 w-16 rounded-full p-0.5 rounded-br-md fixed bottom-5 right-5 flex items-center justify-center   cursor-pointer active:scale-95 transition-all ease-in">
+      <input
+        type="file"
+        accept="audio/*"
+        id="file"
+        onChange={handleFileChange}
+        style={{ display: "none" }}
+      />
+
       <div
         onClick={toggleFAB}
         className={`select-none  rounded-full w-full h-full flex items-center justify-center transition-transform ease-in ${
@@ -82,17 +112,18 @@ const FloatingButton = () => {
             </motion.li>
 
             {/* List item B */}
-            <motion.li
+            <motion.label
+              htmlFor="file"
               variants={itemB}
               onClick={() => console.log("List item B clicked")}
-              className="h-14 w-14 rounded-full bg-[#F4458D] flex items-center justify-center"
+              className="h-14 w-14 rounded-full bg-[#F4458D] flex items-center justify-center cursor-pointer  "
             >
               <FileUpload
                 className="text-white"
                 fontSize="large"
                 color="inherit"
               />
-            </motion.li>
+            </motion.label>
 
             {/* List item C */}
             <motion.li
@@ -103,6 +134,7 @@ const FloatingButton = () => {
           </motion.ul>
         )}
       </AnimatePresence>
+      <PatientInfoDialog />
     </div>
   );
 };

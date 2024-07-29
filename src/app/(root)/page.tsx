@@ -1,28 +1,17 @@
 "use client";
+import PatientInfoDialog from "@/components/common/patientInfoDialog";
 import Sidebar from "@/components/common/sidebar";
-import { Mic, PauseCircle, PlayCircle } from "@mui/icons-material";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
-import axios from "axios";
-import { AnimatePresence, motion } from "framer-motion";
+import Recorder from "@/components/home/Recorder";
+import { useTranscription } from "@/contexts/TranscriptionContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 export default function Home() {
-  const [open, setOpen] = useState(false);
+  const { loading, transcription, setAudioBlob, setFile, setOpen } =
+    useTranscription();
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [isDragActive, setIsDragActive] = useState<boolean>(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [patientName, setPatientName] = useState<string>("");
-  const [dob, setDob] = useState<string>("");
-
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -149,37 +138,6 @@ export default function Home() {
     setOpen(true);
   };
 
-  const handleDialogClose = (e?: any, reason?: string) => {
-    if (reason === "backdropClick" || reason === "escapeKeyDown") return;
-    setOpen(false);
-  };
-
-  const handleGenerateNote = async (skip: boolean = false) => {
-    if (!audioBlob && !file) return;
-    const reader = new FileReader();
-    const blob = audioBlob || file;
-    reader.readAsDataURL(blob!);
-    reader.onloadend = async () => {
-      const base64Audio = reader.result as string;
-      const payload = {
-        audioBlob: base64Audio,
-        patientName: skip ? "" : patientName,
-        dob: skip ? "" : dob,
-      };
-      try {
-        const response = await axios.post("/api/transcribe", payload);
-        if (response.data) {
-          setFile(null);
-          setAudioBlob(null);
-        }
-        console.log("Response:", response.data);
-      } catch (error) {
-        console.error("Error generating note:", error);
-      }
-      handleDialogClose();
-    };
-  };
-
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     setFile(file);
@@ -227,130 +185,23 @@ export default function Home() {
               </div>
             </div>
           )}
-          <div className=" mb-8 ">
-            <AnimatePresence mode="wait">
-              {!isRecording ? (
-                <motion.div
-                  key="capture"
-                  className="flex flex-col items-center justify-center space-y-4"
-                  initial={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -40 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <h1 className="text-2xl">Start a visit</h1>
-                  <button
-                    onClick={handlePlayPause}
-                    className="px-4 bg-[#051D2F] text-[12px] flex items-center justify-center gap-1 uppercase text-white py-2 rounded-[100px] shadow hover:bg-[#051D2F] transition-colors duration-300 z-50"
-                  >
-                    <Mic fontSize="small" />
-                    Capture visit
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="listening"
-                  className="flex flex-col items-center justify-center space-y-4"
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 1 }}
-                >
-                  <p className="text-xl">Listening...</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {isRecording && (
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 1 }}
-              >
-                <canvas
-                  ref={canvasRef}
-                  width={300}
-                  height={40}
-                  className=" mt-8"
-                />
-                <div className="flex gap-4 mt-4 items-center justify-center">
-                  <button
-                    onClick={() => {
-                      stopRecording();
-                      handleDialogOpen();
-                    }}
-                    className="px-4 bg-[#051D2F] text-[12px] flex items-center justify-center gap-1 uppercase text-white py-2 rounded-[100px] shadow hover:bg-[#051D2F] transition-colors duration-300 z-50"
-                  >
-                    <Mic fontSize="small" />
-                    End Visit
-                  </button>
-                  <button
-                    onClick={handlePlayPause}
-                    className="px-4 bg-[#051D2F] text-[12px] flex items-center justify-center gap-1 uppercase text-white py-2 rounded-[100px] shadow hover:bg-[#051D2F] transition-colors duration-300 z-50"
-                  >
-                    {isPaused ? (
-                      <PlayCircle fontSize="small" />
-                    ) : (
-                      <PauseCircle fontSize="small" />
-                    )}
-                    {isPaused ? "Resume" : "Pause"}
-                  </button>
-                </div>
-              </motion.div>
-            )}
-            <div className=" flex items-center justify-center mt-4 gap-2">
-              <div className=" w-[60px] h-[0.2px] opacity-20 bg-black"></div>
-              <p className=" text-sm">or</p>
-              <div className=" w-[60px] h-[0.2px] opacity-20 bg-black"></div>
-            </div>
-            <h1 className=" text-center text-sm opacity-60">
-              Drag in a pre-recorded visit.
-            </h1>
-          </div>
 
-          {audioBlob && (
+          <Recorder
+            loading={loading}
+            transcription={transcription}
+            isRecording={isRecording}
+            isPaused={isPaused}
+            handlePlayPause={handlePlayPause}
+            canvasRef={canvasRef}
+            stopRecording={stopRecording}
+            handleDialogOpen={handleDialogOpen}
+          />
+          {/* {audioBlob && (
             <audio controls>
               <source src={URL.createObjectURL(audioBlob)} type="audio/wav" />
             </audio>
-          )}
-
-          <Dialog open={open} onClose={handleDialogClose} fullWidth>
-            <DialogTitle>Patient Information</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Please enter the patient&apos;s name and date of birth.
-              </DialogContentText>
-              <TextField
-                autoFocus
-                required
-                margin="dense"
-                id="name"
-                label="Patient Name"
-                type="text"
-                fullWidth
-                variant="standard"
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-              />
-              <TextField
-                required
-                margin="dense"
-                id="dob"
-                label="Date of Birth"
-                type="date"
-                fullWidth
-                variant="standard"
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => handleGenerateNote(true)}>Skip</Button>
-              <Button onClick={() => handleGenerateNote(false)}>
-                Generate
-              </Button>
-            </DialogActions>
-          </Dialog>
+          )} */}
+          <PatientInfoDialog />
         </div>
       </div>
     </div>
