@@ -7,8 +7,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 export default function Home() {
-  const { loading, transcription, setAudioBlob, setFile, setOpen } =
-    useTranscription();
+  const {
+    loading,
+    transcription,
+    setAudioBlob,
+    setFile,
+    setOpen,
+    status,
+    notes,
+  } = useTranscription();
+
+  console.log("Notes===>", notes && JSON?.parse(notes));
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isDragActive, setIsDragActive] = useState<boolean>(false);
@@ -19,54 +28,6 @@ export default function Home() {
   const dataArrayRef = useRef<Uint8Array | null>(null);
   const animationIdRef = useRef<number | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      const canvasCtx = canvas.getContext("2d");
-
-      const draw = () => {
-        if (!canvasCtx || !analyserRef.current || !dataArrayRef.current) {
-          return;
-        }
-
-        const WIDTH = canvas.width;
-        const HEIGHT = canvas.height;
-
-        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-
-        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-
-        const barWidth = (WIDTH / analyserRef.current.frequencyBinCount) * 2.5;
-        let barHeight;
-        let x = 0;
-
-        for (let i = 0; i < analyserRef.current.frequencyBinCount; i++) {
-          barHeight = dataArrayRef.current[i];
-
-          canvasCtx.fillStyle = "rgb(255, 20, 147)";
-          canvasCtx.fillRect(
-            x,
-            HEIGHT - barHeight / 5,
-            barWidth,
-            barHeight / 2
-          );
-
-          x += barWidth + 1;
-        }
-
-        animationIdRef.current = requestAnimationFrame(draw);
-      };
-
-      draw();
-    }
-
-    return () => {
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
-    };
-  }, [isRecording]);
 
   const handlePlayPause = () => {
     if (!isRecording) {
@@ -193,6 +154,10 @@ export default function Home() {
             isPaused={isPaused}
             handlePlayPause={handlePlayPause}
             canvasRef={canvasRef}
+            analyserRef={analyserRef}
+            dataArrayRef={dataArrayRef}
+            animationIdRef={animationIdRef}
+            status={status}
             stopRecording={stopRecording}
             handleDialogOpen={handleDialogOpen}
           />

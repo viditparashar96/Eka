@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import React, { createContext, useContext, useRef, useState } from "react";
 
 interface TranscriptionContextProps {
@@ -12,6 +11,8 @@ interface TranscriptionContextProps {
   patientName: string;
   dob: string;
   loading: boolean;
+  status: string;
+  notes: string;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setPatientName: React.Dispatch<React.SetStateAction<string>>;
   setDob: React.Dispatch<React.SetStateAction<string>>;
@@ -36,6 +37,9 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+
   const [patientName, setPatientName] = useState<string>("");
   const [dob, setDob] = useState<string>("");
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -118,9 +122,11 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleGenerateNote = async (skip: boolean = false) => {
     if (!audioBlob && !file) return;
+
     const reader = new FileReader();
     const blob = audioBlob || file;
     reader.readAsDataURL(blob!);
+
     reader.onloadend = async () => {
       const base64Audio = reader.result as string;
       const payload = {
@@ -128,26 +134,53 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         patientName: skip ? "" : patientName,
         dob: skip ? "" : dob,
       };
+
       try {
         setLoading(true);
-        const response = await axios.post("/api/transcribe", payload);
-        if (response.data) {
-          setFile(null);
-          setAudioBlob(null);
-          setLoading(false);
-          setTranscription(response.data.text);
+        setStatus("Generating Transcription...");
+
+        const response = await fetch("/api/transcribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const result = await reader?.read();
+          if (result?.done) break;
+
+          const decodedChunk = decoder.decode(result?.value);
+          const parsedChunk = JSON.parse(decodedChunk);
+
+          if (parsedChunk.transcription) {
+            setTranscription(parsedChunk.transcription);
+            setStatus("Generating Notes...");
+          } else if (parsedChunk.Notes) {
+            setNotes(parsedChunk.Notes);
+            setStatus("Completed");
+          } else if (parsedChunk.error) {
+            console.log(parsedChunk.error);
+            setStatus("Error");
+          }
         }
-        console.log("Response:", response.data);
+
+        setFile(null);
+        setAudioBlob(null);
       } catch (error) {
         console.error("Error generating note:", error);
-        setLoading(false);
+        console.log("An error occurred while generating the note.");
+        setStatus("Error");
       } finally {
         if (file) {
           setFile(null);
         }
         setLoading(false);
+        handleDialogClose();
       }
-      handleDialogClose();
     };
   };
 
@@ -163,6 +196,8 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         patientName,
         dob,
         loading,
+        status,
+        notes,
         setPatientName,
         setLoading,
         setDob,

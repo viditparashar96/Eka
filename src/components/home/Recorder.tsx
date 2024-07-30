@@ -1,7 +1,7 @@
 import loadingAnimation from "@/lotties/loading.json";
 import { Mic, PauseCircle, PlayCircle } from "@mui/icons-material";
 import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
+import React, { useEffect } from "react";
 import Lottie from "react-lottie";
 import TranscribeModal from "./TranscribeModal";
 
@@ -13,18 +13,26 @@ interface RecorderProps {
   stopRecording: () => void;
   handleDialogOpen: () => void;
   transcription: string;
+  status: string;
   loading: boolean;
+  animationIdRef: React.MutableRefObject<number | null>;
+  analyserRef: React.MutableRefObject<AnalyserNode | null>;
+  dataArrayRef: React.MutableRefObject<Uint8Array | null>;
 }
 
 const Recorder = ({
   isRecording,
   isPaused,
   canvasRef,
+  status,
   handlePlayPause,
   stopRecording,
   handleDialogOpen,
   transcription,
   loading,
+  animationIdRef,
+  analyserRef,
+  dataArrayRef,
 }: RecorderProps) => {
   const defaultOptions = {
     loop: true,
@@ -34,12 +42,59 @@ const Recorder = ({
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const canvasCtx = canvas.getContext("2d");
+
+      const draw = () => {
+        if (!canvasCtx || !analyserRef.current || !dataArrayRef.current) {
+          return;
+        }
+
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+        const barWidth = (WIDTH / analyserRef.current.frequencyBinCount) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for (let i = 0; i < analyserRef.current.frequencyBinCount; i++) {
+          barHeight = dataArrayRef.current[i];
+
+          canvasCtx.fillStyle = "rgb(255, 20, 147)";
+          canvasCtx.fillRect(
+            x,
+            HEIGHT - barHeight / 5,
+            barWidth,
+            barHeight / 2
+          );
+
+          x += barWidth + 1;
+        }
+
+        animationIdRef.current = requestAnimationFrame(draw);
+      };
+
+      draw();
+    }
+
+    return () => {
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+    };
+  }, [isRecording]);
   return (
     <>
       {loading ? (
         <div className="mb-8 text-center">
           <Lottie options={defaultOptions} height={300} width={300} />
-          <p>Generating transcription....</p>
+          <p>{status}</p>
         </div>
       ) : (
         <div className=" mb-8 ">
