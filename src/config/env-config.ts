@@ -4,4 +4,5 @@ export const env_config = {
   azure_region: process.env.AZURE_REGION || "",
   azure_deployment_name: process.env.OPENAI_MODEL_DEPLOYMENT_NAME || "",
   openai_model_name: process.env.OPENAI_MODEL_NAME || "",
+  openai_chat_model_name: process.env.OPENAI_CHAT_MODEL_NAME || "",
 };
