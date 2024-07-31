@@ -18,6 +18,10 @@ const Page = () => {
     try {
       const result = await loginUser(formData);
       console.log("result===>", result);
+      if (result) {
+        window.location.href = "/dashboard";
+        toast.success("Login successful");
+      }
     } catch (error: any) {
       console.log("error===>", error);
       if (error.response) {

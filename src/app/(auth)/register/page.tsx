@@ -1,10 +1,12 @@
 "use client";
 import { registerUser } from "@/services/actions/user.action";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const Page = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     specialization: "",
     email: "",
@@ -19,6 +21,10 @@ const Page = () => {
     try {
       const result = await registerUser(formData);
       console.log("result===>", result);
+      if (result) {
+        router.push("/login");
+        toast.success("Register successful");
+      }
     } catch (error: any) {
       console.log("error===>", error);
       if (error.response) {
