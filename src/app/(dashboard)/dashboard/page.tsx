@@ -7,17 +7,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 export default function Home() {
-  const {
-    loading,
-    transcription,
-    setAudioBlob,
-    setFile,
-    setOpen,
-    status,
-    notes,
-  } = useTranscription();
+  const { loading, transcription, setAudioBlob, setFile, setOpen } =
+    useTranscription();
 
-  console.log("Notes===>", notes && JSON?.parse(notes));
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [isDragActive, setIsDragActive] = useState<boolean>(false);
@@ -157,7 +149,6 @@ export default function Home() {
             analyserRef={analyserRef}
             dataArrayRef={dataArrayRef}
             animationIdRef={animationIdRef}
-            status={status}
             stopRecording={stopRecording}
             handleDialogOpen={handleDialogOpen}
           />

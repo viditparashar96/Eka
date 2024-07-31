@@ -54,7 +54,7 @@ export const POST = async (req: NextRequest) => {
 
             // Chat completion API call
             const completionResponse = await axios.post(
-              `${env_config.azure_endpoint}/openai/deployments/${env_config.openai_chat_model_name}/chat/completions?api-version=2024-04-01-preview`,
+              `${env_config.azure_endpoint}/openai/deployments/eka-gpt4o/chat/completions?api-version=2024-04-01-preview`,
               {
                 messages: [
                   {
@@ -85,6 +85,10 @@ export const POST = async (req: NextRequest) => {
               }
             );
 
+            console.log(
+              "completionResponse===>",
+              completionResponse.data.choices[0].message.content
+            );
             // Send generated notes to frontend
             controller.enqueue(
               encoder.encode(

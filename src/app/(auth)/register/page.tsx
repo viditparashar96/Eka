@@ -1,6 +1,32 @@
+"use client";
+import { registerUser } from "@/services/actions/user.action";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
-const page = () => {
+const Page = () => {
+  const [formData, setFormData] = useState({
+    specialization: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const result = await registerUser(formData);
+      console.log("result===>", result);
+    } catch (error: any) {
+      console.log("error===>", error);
+      if (error.response) {
+        toast.error(error.response.data.error);
+      }
+    }
+  };
+
   return (
     <div
       className="flex items-center justify-center bg-white"
@@ -36,12 +62,13 @@ const page = () => {
           <span className="px-3 text-gray-500">OR</span>
           <hr className="w-full border-gray-300" />
         </div>
-        <form className="space-y-2">
+        <form className="space-y-2" onSubmit={handleSubmit}>
           <div>
             <input
               type="text"
-              id="name"
-              placeholder="Name"
+              id="specialization"
+              placeholder="Specialization"
+              onChange={handleChange}
               className="w-full px-4 py-2 border rounded-sm focus:outline-none   bg-transparent focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
           </div>
@@ -50,6 +77,7 @@ const page = () => {
               type="email"
               id="email"
               placeholder="Email"
+              onChange={handleChange}
               className="w-full px-4 py-2 border rounded-sm focus:outline-none   bg-transparent focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
           </div>
@@ -57,6 +85,7 @@ const page = () => {
             <input
               type="password"
               id="password"
+              onChange={handleChange}
               placeholder="Create Password"
               className="w-full px-4 py-2 border rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
@@ -79,4 +108,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

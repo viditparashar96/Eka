@@ -1,3 +1,4 @@
+import { useTranscription } from "@/contexts/TranscriptionContext";
 import loadingAnimation from "@/lotties/loading.json";
 import { Mic, PauseCircle, PlayCircle } from "@mui/icons-material";
 import { AnimatePresence, motion } from "framer-motion";
@@ -13,7 +14,6 @@ interface RecorderProps {
   stopRecording: () => void;
   handleDialogOpen: () => void;
   transcription: string;
-  status: string;
   loading: boolean;
   animationIdRef: React.MutableRefObject<number | null>;
   analyserRef: React.MutableRefObject<AnalyserNode | null>;
@@ -24,7 +24,6 @@ const Recorder = ({
   isRecording,
   isPaused,
   canvasRef,
-  status,
   handlePlayPause,
   stopRecording,
   handleDialogOpen,
@@ -34,6 +33,8 @@ const Recorder = ({
   analyserRef,
   dataArrayRef,
 }: RecorderProps) => {
+  const { notes, status } = useTranscription();
+  console.log("Notes===>", notes);
   const defaultOptions = {
     loop: true,
     autoplay: true,
