@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="w-full bg-white h-screen">
-      <Toaster />
+      <Toaster richColors />
       <Header />
       {children}
     </div>

@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-      <Toaster />
+      <Toaster richColors />
       {children}
     </div>
   );
