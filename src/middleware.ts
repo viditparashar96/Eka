@@ -23,6 +23,11 @@ export function middleware(request: NextRequest) {
   ) {
     return NextResponse.redirect(new URL("/login", request.nextUrl).toString());
   }
+  if (path === "/") {
+    return NextResponse.redirect(
+      new URL("/dashboard", request.nextUrl).toString()
+    );
+  }
 }
 
 export const config = {
