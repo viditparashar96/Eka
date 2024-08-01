@@ -1,41 +1,47 @@
 // components/ConversationArea.js
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import SaveIcon from "@mui/icons-material/Save";
-import { useEffect, useState } from "react";
-export default function ConversationArea() {
-  const [content, setContent] = useState("");
+import { useState } from "react";
+
+interface ConversationAreaProps {
+  transcription: string;
+}
+export default function ConversationArea({
+  transcription,
+}: ConversationAreaProps) {
   const [isEditing, setIsEditing] = useState(false);
+  console.log("transcription===>", transcription);
 
-  useEffect(() => {
-    fetchTranscription();
-  }, []);
+  // useEffect(() => {
+  //   fetchTranscription();
+  // }, []);
 
-  const fetchTranscription = async () => {
-    const response = await fetch("/api/Transcription?file=dummy_transcription");
-    const data = await response.json();
-    setContent(data.content);
-  };
+  // const fetchTranscription = async () => {
+  //   const response = await fetch("/api/Transcription?file=dummy_transcription");
+  //   const data = await response.json();
+  //   setContent(data.content);
+  // };
 
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
-  };
+  // const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  //   setContent(e.target.value);
+  // };
 
-  const handleSave = async () => {
-    const response = await fetch("/api/Transcription", {
-      method: "POST",
-      body: JSON.stringify({ content, file: "dummy_transcription" }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await response.json();
-    console.log(data);
-    setIsEditing(false);
-  };
+  // const handleSave = async () => {
+  //   const response = await fetch("/api/Transcription", {
+  //     method: "POST",
+  //     body: JSON.stringify({ content, file: "dummy_transcription" }),
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  //   const data = await response.json();
+  //   console.log(data);
+  //   setIsEditing(false);
+  // };
 
   const formatContent = (text: string) => {
     return text.split("\n").map((line, index) => {
@@ -61,7 +67,10 @@ export default function ConversationArea() {
       <div className="flex justify-between items-center mb-2">
         <h2 className=" font-bold text-xl">Conversation</h2>
         {isEditing ? (
-          <SaveIcon className="cursor-pointer scale-125" onClick={handleSave} />
+          <SaveIcon
+            className="cursor-pointer scale-125"
+            // onClick={handleSave}
+          />
         ) : (
           <EditNoteIcon
             className="cursor-pointer scale-125"
@@ -71,13 +80,13 @@ export default function ConversationArea() {
       </div>
       {isEditing ? (
         <textarea
-          value={content}
-          onChange={handleChange}
+          value={transcription}
+          // onChange={handleChange}
           className="w-full h-64 p-2  rounded  whitespace-pre-wrap"
         />
       ) : (
         <div className="w-full h-64 p-2  rounded overflow-auto  whitespace-pre-wrap">
-          {formatContent(content)}
+          {transcription}
         </div>
       )}
     </div>

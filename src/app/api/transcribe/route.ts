@@ -24,6 +24,10 @@ export const POST = async (req: NextRequest) => {
             return;
           }
 
+          controller.enqueue(
+            encoder.encode(JSON.stringify({ user: "User Created" }))
+          );
+
           try {
             const buffer = Buffer.from(audioBlob.split(",")[1], "base64");
 
@@ -62,7 +66,7 @@ export const POST = async (req: NextRequest) => {
                     content: [
                       {
                         type: "text",
-                        text: 'You are an AI assistant designed to assist doctors by transcribing and summarizing medical conversations. Given a conversation between a doctor and a patient, your task is to produce a structured medical note in the following JSON format:\n\n{\n    "Doctor_Patient_Discussion": {\n        "Initial_Observation": {\n            "Symptoms": [],\n            "Initial_Assessment": ""\n        },\n        "Medical_Examination": {\n            "Temperature":"",\n            "Blood_Pressure":"",\n            "Doctor_Assessment": "",\n            "Diagnosis": ""\n        },\n        "Treatment_Plan": {\n            "Prescription": []\n        }\n    }\n}\n\nPlease ensure the notes are detailed and accurate based on the conversation provided.',
+                        text: 'You are an AI assistant designed to assist doctors by transcribing and summarizing medical conversations. Given a conversation between a doctor and a patient, your task is to produce a structured medical note in the following JSON format:\n\n{\n    "Doctor_Patient_Discussion": {\n        "Initial_Observation": {\n            "Symptoms": [],\n            "Initial_Assessment": ""\n        },\n        "Medical_Examination": {\n            "Temperature":"",\n            "Blood_Pressure":"",\n            "Doctor_Assessment": "",\n            "Diagnosis": ""\n        },\n        "Treatment_Plan": {\n            "Prescription": []\n        }\n    }\n}\n\nPlease ensure the notes are detailed and accurate based on the conversation provided and do to inclued ```json in response i just need json so that i can easily parsed.',
                       },
                     ],
                   },

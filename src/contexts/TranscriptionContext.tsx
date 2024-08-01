@@ -1,5 +1,7 @@
 "use client";
+import { useRouter } from "next/navigation";
 import React, { createContext, useContext, useRef, useState } from "react";
+import { toast } from "sonner";
 
 interface TranscriptionContextProps {
   isRecording: boolean;
@@ -36,6 +38,7 @@ const TranscriptionContext = createContext<
 export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -123,65 +126,78 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleGenerateNote = async (skip: boolean = false) => {
     if (!audioBlob && !file) return;
 
-    const reader = new FileReader();
-    const blob = audioBlob || file;
-    reader.readAsDataURL(blob!);
+    const promise = new Promise(async (resolve, reject) => {
+      const reader = new FileReader();
+      const blob = audioBlob || file;
+      reader.readAsDataURL(blob!);
 
-    reader.onloadend = async () => {
-      const base64Audio = reader.result as string;
-      const payload = {
-        audioBlob: base64Audio,
-        patientName: skip ? "" : patientName,
-        dob: skip ? "" : dob,
-      };
+      reader.onloadend = async () => {
+        const base64Audio = reader.result as string;
+        const payload = {
+          audioBlob: base64Audio,
+          patientName: skip ? "" : patientName,
+          dob: skip ? "" : dob,
+        };
 
-      try {
-        setLoading(true);
-        setStatus("Generating Transcription...");
+        try {
+          setLoading(true);
+          setStatus("Generating Transcription...");
 
-        const response = await fetch("/api/transcribe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
 
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-          const result = await reader?.read();
-          if (result?.done) break;
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
+          while (true) {
+            const result = await reader?.read();
+            if (result?.done) break;
 
-          const decodedChunk = decoder.decode(result?.value);
-          const parsedChunk = JSON.parse(decodedChunk);
-
-          if (parsedChunk.transcription) {
-            setTranscription(parsedChunk.transcription);
-            setStatus("Generating Notes...");
-          } else if (parsedChunk.Notes) {
-            setNotes(parsedChunk.Notes);
-            setStatus("Completed");
-          } else if (parsedChunk.error) {
-            console.log(parsedChunk.error);
-            setStatus("Error");
+            const decodedChunk = decoder.decode(result?.value);
+            const parsedChunk = JSON.parse(decodedChunk);
+            if (parsedChunk.user) {
+              console.log("User Created");
+              router.push("/patient/1");
+            } else if (parsedChunk.transcription) {
+              setTranscription(parsedChunk.transcription);
+              setStatus("Generating Notes...");
+            } else if (parsedChunk.Notes) {
+              setNotes(parsedChunk.Notes);
+              setStatus("Completed");
+              resolve({ name: "Notes" });
+            } else if (parsedChunk.error) {
+              console.log(parsedChunk.error);
+              setStatus("Error");
+              reject(new Error(parsedChunk.error));
+            }
           }
-        }
 
-        setFile(null);
-        setAudioBlob(null);
-      } catch (error) {
-        console.error("Error generating note:", error);
-        console.log("An error occurred while generating the note.");
-        setStatus("Error");
-      } finally {
-        if (file) {
           setFile(null);
+          setAudioBlob(null);
+        } catch (error) {
+          console.error("Error generating note:", error);
+          console.log("An error occurred while generating the note.");
+          setStatus("Error");
+          reject(error);
+        } finally {
+          if (file) {
+            setFile(null);
+          }
+          setLoading(false);
+          handleDialogClose();
         }
-        setLoading(false);
-        handleDialogClose();
-      }
-    };
+      };
+    });
+
+    toast.promise(promise, {
+      loading: `Generating ${status}...`,
+      success: (status) => `Notes has been added`,
+      error: "Error",
+    });
   };
 
   return (

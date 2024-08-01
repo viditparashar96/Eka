@@ -3,6 +3,7 @@ import ConversationArea from "@/components/patients/ConversationArea";
 import GeneratedSoap from "@/components/patients/GeneratedSoap";
 import PatientSubHeader from "@/components/patients/patientSubHeader";
 import { patientsList } from "@/constants";
+import { useTranscription } from "@/contexts/TranscriptionContext";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
@@ -13,6 +14,7 @@ import { useState } from "react";
 const names = ["Generated Soap notes", "Note2", "Note3", "Note4"];
 const Page = () => {
   const params: any = useParams();
+  const { notes: transcribtionNotes, transcription } = useTranscription();
   const [isChatVisible, setIsChatVisible] = useState(false);
   const foundedUser = patientsList.find((user) => user.id == params.Id);
   const [notes, setNotes] = useState<any>("Generated Soap notes");
@@ -28,6 +30,10 @@ const Page = () => {
     setMessages([...messages, { message, type: "sent" }]);
     setMessage("");
   };
+  console.log(
+    "Transcription Notes in patient====>",
+    transcribtionNotes && JSON.parse(transcribtionNotes)
+  );
   return (
     <div>
       <PatientSubHeader foundedUser={foundedUser} />
@@ -87,8 +93,8 @@ const Page = () => {
               transition={{ type: "spring", stiffness: 100, damping: 20 }}
               className=" flex items-center justify-between gap-10 mt-6 md:flex-row flex-col"
             >
-              <ConversationArea />
-              <GeneratedSoap />
+              <ConversationArea transcription={transcription} />
+              <GeneratedSoap notes={transcribtionNotes} />
             </motion.div>
           )}
         </AnimatePresence>
