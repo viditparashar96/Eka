@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
-import { createUser } from "@/services/actions/user.action";
+import prisma from "@/config/db-config";
 import { WebhookEvent } from "@clerk/nextjs/server";
+import { Role } from "@prisma/client";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
@@ -66,15 +67,32 @@ export async function POST(req: Request) {
     console.log("User created event:", evt.data);
 
     // Create a user in your database
-    const postgresqlUser = await createUser({
-      clerkId: id,
-      name: `${first_name} ${last_name ? `${last_name}` : ""}`,
-      email: email_addresses[0].email_address,
-    });
+    // const postgresqlUser = await createUser({
+    //   clerkId: id,
+    //   name: `${first_name} ${last_name ? `${last_name}` : ""}`,
+    //   email: email_addresses[0].email_address,
+    // });
 
+    const user = await prisma.user.create({
+      data: {
+        clerkId: id,
+        name: `${first_name} ${last_name ? `${last_name}` : ""}`,
+        email: email_addresses[0].email_address,
+        role: Role.PHYSICIAN,
+        physician: {
+          create: {
+            specialization: "General Physician",
+          },
+        },
+      },
+
+      include: {
+        physician: true,
+      },
+    });
     return NextResponse.json({
       msg: "ok",
-      user: postgresqlUser,
+      user,
     });
   }
 
