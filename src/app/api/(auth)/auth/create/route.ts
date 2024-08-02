@@ -35,6 +35,7 @@ export const POST = async (req: NextRequest): Promise<NextResponse> => {
         physician: {
           create: {
             specialization: "General Physician",
+            clerkId,
           },
         },
       },

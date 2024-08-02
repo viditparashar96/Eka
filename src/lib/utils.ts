@@ -14,9 +14,12 @@ export const getDataFromToken = (req: NextRequest) => {
 
 export const getCurrentPhysician = async (clerkId: string) => {
   try {
-    const currentPhycian = await prisma.user.findUnique({
+    const currentPhycian = await prisma.physician.findUnique({
       where: {
-        clerkId: clerkId,
+        clerkId,
+      },
+      include: {
+        user: true,
       },
     });
     return currentPhycian;
