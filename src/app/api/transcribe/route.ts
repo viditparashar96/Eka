@@ -40,7 +40,7 @@ export const POST = async (req: NextRequest) => {
             data: {
               name: patientName || "Unknown",
               dateOfBirth: new Date(dob) || new Date(),
-              physicianId: currentPhycian.userId,
+              physicianId: currentPhycian.id,
             },
           });
 
