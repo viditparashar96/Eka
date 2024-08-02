@@ -1,5 +1,4 @@
 import prisma from "@/config/db-config";
-import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 export const POST = async (req: NextRequest) => {
@@ -30,27 +29,26 @@ export const POST = async (req: NextRequest) => {
     // create user (Physician)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const new_user = await prisma.user.create({
-      data: {
-        email: email,
-        password: hashedPassword,
-        role: Role.PHYSICIAN,
-        physician: {
-          create: {
-            specialization: specialization,
-          },
-        },
-      },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        physician: true,
-      },
-    });
+    // const new_user = await prisma.user.create({
+    //   data: {
+    //     email: email,
+    //     password: hashedPassword,
+    //     role: Role.PHYSICIAN,
+    //     physician: {
+    //       create: {
+    //         specialization: specialization,
+    //       },
+    //     },
+    //   },
+    //   select: {
+    //     id: true,
+    //     email: true,
+    //     role: true,
+    //     physician: true,
+    //   },
+    // });
     return NextResponse.json({
       message: "User Registered Successfully",
-      new_user,
     });
   } catch (error) {
     console.log(error);

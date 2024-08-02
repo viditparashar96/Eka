@@ -21,3 +21,16 @@ export const loginUser = async (data: { email: string; password: string }) => {
     throw error;
   }
 };
+
+export const createUser = async (data: {
+  name: string;
+  email: string;
+  clerkId: string;
+}) => {
+  try {
+    const response = await axios.post("/api/auth/create", data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
