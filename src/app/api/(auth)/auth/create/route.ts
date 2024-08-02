@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const POST = async (req: NextRequest): Promise<NextResponse> => {
   try {
     const { email, name, clerkId } = await req.json();
+    console.log(email, name, clerkId, "in create user API");
     if (!email || !name || !clerkId) {
       return NextResponse.json(
         { error: "All Fields are Required" },
