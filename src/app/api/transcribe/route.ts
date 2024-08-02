@@ -1,4 +1,6 @@
+import prisma from "@/config/db-config";
 import { env_config } from "@/config/env-config";
+import { getCurrentPhysician } from "@/lib/utils";
 import axios from "axios";
 import FormData from "form-data";
 import { NextRequest } from "next/server";
@@ -12,9 +14,10 @@ export const POST = async (req: NextRequest) => {
         const contentType = req.headers.get("content-type");
 
         if (contentType?.includes("application/json")) {
-          const { audioBlob, patientName, dob } = await req.json();
+          const { audioBlob, patientName, dob, clerkId } = await req.json();
           console.log("patientName===>", patientName);
           console.log("dob===>", dob);
+          console.log("clerkId===>", clerkId);
 
           if (!audioBlob) {
             controller.enqueue(
@@ -24,9 +27,34 @@ export const POST = async (req: NextRequest) => {
             return;
           }
 
-          controller.enqueue(
-            encoder.encode(JSON.stringify({ user: "User Created" }))
-          );
+          const currentPhycian = await getCurrentPhysician(clerkId);
+          console.log("currentPhycian===>", currentPhycian);
+          if (!currentPhycian) {
+            controller.enqueue(
+              encoder.encode(JSON.stringify({ error: "No Physician found" }))
+            );
+            controller.close();
+            return;
+          }
+          const patient = await prisma.patient.create({
+            data: {
+              name: patientName || "Unknown",
+              dateOfBirth: new Date(dob) || new Date(),
+              physicianId: currentPhycian.id,
+            },
+          });
+
+          if (!patient) {
+            controller.enqueue(
+              encoder.encode(
+                JSON.stringify({ error: "Error in creating patient" })
+              )
+            );
+            controller.close();
+            return;
+          }
+
+          controller.enqueue(encoder.encode(JSON.stringify({ user: patient })));
 
           try {
             const buffer = Buffer.from(audioBlob.split(",")[1], "base64");

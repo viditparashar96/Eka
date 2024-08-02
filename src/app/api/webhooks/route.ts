@@ -82,6 +82,7 @@ export async function POST(req: Request) {
         physician: {
           create: {
             specialization: "General Physician",
+            clerkId: id,
           },
         },
       },

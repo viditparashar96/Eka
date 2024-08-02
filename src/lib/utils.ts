@@ -1,3 +1,4 @@
+import prisma from "@/config/db-config";
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 export const getDataFromToken = (req: NextRequest) => {
@@ -8,5 +9,19 @@ export const getDataFromToken = (req: NextRequest) => {
   } catch (error) {
     console.log(error);
     throw new Error("Invalid Token");
+  }
+};
+
+export const getCurrentPhysician = async (clerkId: string) => {
+  try {
+    const currentPhycian = await prisma.user.findUnique({
+      where: {
+        clerkId: clerkId,
+      },
+    });
+    return currentPhycian;
+  } catch (error) {
+    console.log(error);
+    throw new Error("ClerkId not found");
   }
 };

@@ -38,6 +38,7 @@ model SuperAdmin {
 
 model Physician {
   id             Int       @id @default(autoincrement())
+  clerkId        String    @unique
   userId         Int       @unique
   user           User      @relation(fields: [userId], references: [id])
   specialization String?

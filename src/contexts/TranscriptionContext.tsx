@@ -1,4 +1,5 @@
 "use client";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import React, { createContext, useContext, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const router = useRouter();
+  const { isLoaded, userId, sessionId, getToken } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -137,6 +139,7 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
           audioBlob: base64Audio,
           patientName: skip ? "" : patientName,
           dob: skip ? "" : dob,
+          clerkId: userId,
         };
 
         try {
@@ -161,7 +164,7 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
             const parsedChunk = JSON.parse(decodedChunk);
             if (parsedChunk.user) {
               console.log("User Created");
-              router.push("/patient/1");
+              router.push(`/patient/${parsedChunk.user.id}`);
             } else if (parsedChunk.transcription) {
               setTranscription(parsedChunk.transcription);
               setStatus("Generating Notes...");
