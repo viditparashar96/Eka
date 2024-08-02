@@ -31,7 +31,9 @@ export const POST = async (req: NextRequest) => {
           console.log("currentPhycian===>", currentPhycian);
           if (!currentPhycian) {
             controller.enqueue(
-              encoder.encode(JSON.stringify({ error: "No Physician found" }))
+              encoder.encode(
+                JSON.stringify({ error: "No Physician found in db" })
+              )
             );
             controller.close();
             return;
