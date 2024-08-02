@@ -28,6 +28,7 @@ export const createUser = async (data: {
   clerkId: string;
 }) => {
   try {
+    console.log(data, "in create user API actions");
     const response = await axios.post("/api/auth/create", data);
     console.log(response.data);
     return response.data;
