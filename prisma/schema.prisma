@@ -35,10 +35,20 @@ model SuperAdmin {
 }
 
 model Physician {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
-  specialization  String?
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique
+  user           User      @relation(fields: [userId], references: [id])
+  specialization String?
+  patients       Patient[]
+}
+
+model Patient {
+  id               Int       @id @default(autoincrement())
+  name             String
+  dateOfBirth      DateTime
+  visitDay         DateTime @default(now())
+  physician        Physician @relation(fields: [physicianId], references: [id])
+  physicianId      Int
 }
 
 model Conversation {
@@ -52,6 +62,7 @@ model Conversation {
   initiator     User     @relation("Initiator", fields: [initiatorId], references: [id])
   receiver      User     @relation("Receiver", fields: [receiverId], references: [id])
 }
+
 enum Role {
   ADMIN
   SUPERADMIN

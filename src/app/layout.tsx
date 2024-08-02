@@ -1,9 +1,9 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -17,12 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AppRouterCacheProvider options={{ key: "css" }}>
-          <Providers>{children}</Providers>
-        </AppRouterCacheProvider>
-      </body>
-    </html>
+    <ClerkProvider afterSignOutUrl={"/sign-in"}>
+      <html lang="en">
+        <body className={inter.className}>
+          <AppRouterCacheProvider options={{ key: "css" }}>
+            <Providers>{children}</Providers>
+          </AppRouterCacheProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

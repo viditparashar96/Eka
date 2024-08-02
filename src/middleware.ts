@@ -1,41 +1,16 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export function middleware(request: NextRequest) {
-  console.log(new Date(), request.method, "=>", request.nextUrl.href);
-  const path = request.nextUrl.pathname;
-  console.log("path in middleware===>", path);
-  const auth_path = path === "/login" || path === "/register";
-  const is_private_path =
-    request.nextUrl.pathname.startsWith("/api") ||
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/patient");
-  const token = request.cookies.get("token")?.value || "";
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/patient(.*)"]);
 
-  if (auth_path && token) {
-    return NextResponse.redirect(
-      new URL("/dashboard", request.nextUrl).toString()
-    );
-  }
-  if (
-    is_private_path &&
-    !token &&
-    !request.nextUrl.pathname.startsWith("/api/")
-  ) {
-    return NextResponse.redirect(new URL("/login", request.nextUrl).toString());
-  }
-  if (path === "/") {
-    return NextResponse.redirect(
-      new URL("/dashboard", request.nextUrl).toString()
-    );
-  }
-}
+export default clerkMiddleware((auth, req) => {
+  if (isProtectedRoute(req)) auth().protect();
+});
 
 export const config = {
   matcher: [
-    "/login",
-    "/register",
-    "/dashboard",
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
     "/(api|trpc)(.*)",
-    "/((?!.+\\.[\\w]+$|_next).*)",
   ],
 };

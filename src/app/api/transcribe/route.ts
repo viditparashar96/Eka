@@ -75,7 +75,7 @@ export const POST = async (req: NextRequest) => {
                     content: [
                       {
                         type: "text",
-                        text: "Hello Mr. Johnson. What brings you here today?Hi Doctor Strange. I haven't been feeling too well. I think I might have the flu. I'm so sorry to hear that. When did it first start?Two days ago.It definitely looks like the flu. I recommend that you drink lots of fluids, rest, and take Ibuprofen if you experience any sore throat or headaches. Then let's have you come back in 2 weeks and see how you're doing. Does that sound good?That sounds great doctor. Thank you for seeing me today.Goodbye",
+                        text: transcription,
                       },
                     ],
                   },
