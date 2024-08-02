@@ -63,6 +63,8 @@ export async function POST(req: Request) {
     const { id, email_addresses, first_name, last_name, image_url, username } =
       evt.data;
 
+    console.log("User created event:", evt.data);
+
     // Create a user in your database
     const postgresqlUser = await createUser({
       clerkId: id,
