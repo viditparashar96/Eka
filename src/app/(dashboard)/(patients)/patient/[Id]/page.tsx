@@ -16,7 +16,7 @@ const Page = () => {
   const params: any = useParams();
   const { notes: transcribtionNotes, transcription } = useTranscription();
   const [isChatVisible, setIsChatVisible] = useState(false);
-  const foundedUser = patientsList.find((user) => user.id == params.Id);
+  const foundedUser: any = patientsList.find((user) => user.id == params.Id);
   const [notes, setNotes] = useState<any>("Generated Soap notes");
   const [messages, setMessages] = useState<any>([]);
   const [message, setMessage] = useState<any>("");

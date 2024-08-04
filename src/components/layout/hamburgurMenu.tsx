@@ -60,7 +60,7 @@ const person = (
 );
 const HamburgurMenu = () => {
   const [open, setState]: any = useState(false);
-  const [patients, setPatients] = useState(patientsList);
+  const [patients, setPatients]: any = useState(patientsList);
   const [search, setSearch] = useState("");
 
   const handleSeach = (e: any) => {
@@ -153,7 +153,7 @@ const HamburgurMenu = () => {
             </div>
 
             <div className="space-y-2">
-              {patients.map((patient, index) => (
+              {patients.map((patient: any, index: any) => (
                 <Avatar key={index} patient={patient} />
               ))}
             </div>

@@ -1,5 +1,6 @@
 import prisma from "@/config/db-config";
 import { env_config } from "@/config/env-config";
+import cosmosSingleton from "@/lib/cosmos/cosmos";
 import { getCurrentPhysician } from "@/lib/utils";
 import axios from "axios";
 import FormData from "form-data";
@@ -11,8 +12,9 @@ export const POST = async (req: NextRequest) => {
   const stream = new ReadableStream({
     async start(controller) {
       try {
+        await cosmosSingleton.initialize();
         const contentType = req.headers.get("content-type");
-
+        const container = cosmosSingleton.getContainer();
         if (contentType?.includes("application/json")) {
           const { audioBlob, patientName, dob, clerkId } = await req.json();
           console.log("patientName===>", patientName);
@@ -123,6 +125,31 @@ export const POST = async (req: NextRequest) => {
               "completionResponse===>",
               completionResponse.data.choices[0].message.content
             );
+
+            // Create a new note in CosmosDB
+            // const { resource: createdNote } = await container.items.create({
+            //   Doctor_Patient_Discussion: JSON.parse(
+            //     completionResponse.data.choices[0].message.content
+            //   ),
+            //   PatientId: patient.id,
+            //   PhysicianId: currentPhycian.userId,
+            // });
+            const noteItem = {
+              id: `${patient.id}_${currentPhycian.userId}`, // Unique identifier combining PatientId and PhysicianId
+              Doctor_Patient_Discussion:
+                completionResponse.data.choices[0].message.content,
+
+              PatientId: patient.id,
+              PhysicianId: currentPhycian.userId,
+              type: "note",
+            };
+
+            const { resource: upsertedNote } = await container.items.upsert(
+              noteItem
+            );
+
+            console.log("createdNote===>", upsertedNote);
+
             // Send generated notes to frontend
             controller.enqueue(
               encoder.encode(

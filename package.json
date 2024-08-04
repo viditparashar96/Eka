@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.0.0",
     "@clerk/nextjs": "^5.2.10",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
