@@ -21,7 +21,6 @@ model User {
   superAdmin SuperAdmin?
   physician  Physician?
   conversationsInitiated Conversation[] @relation("Initiator")
-  conversationsReceived  Conversation[] @relation("Receiver")
 }
 
 model Admin {
@@ -52,6 +51,8 @@ model Patient {
   visitDay         DateTime @default(now())
   physician        Physician @relation(fields: [physicianId], references: [id])
   physicianId      Int
+  conversationsReceived  Conversation[] @relation("Receiver")
+
 }
 
 model Conversation {
@@ -63,7 +64,7 @@ model Conversation {
   updatedAt     DateTime @updatedAt
 
   initiator     User     @relation("Initiator", fields: [initiatorId], references: [id])
-  receiver      User     @relation("Receiver", fields: [receiverId], references: [id])
+  receiver      Patient     @relation("Receiver", fields: [receiverId], references: [id])
 }
 
 enum Role {

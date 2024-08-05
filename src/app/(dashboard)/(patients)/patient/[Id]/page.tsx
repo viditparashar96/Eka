@@ -4,18 +4,26 @@ import GeneratedSoap from "@/components/patients/GeneratedSoap";
 import PatientSubHeader from "@/components/patients/patientSubHeader";
 import { patientsList } from "@/constants";
 import { useTranscription } from "@/contexts/TranscriptionContext";
+import { getConversationByPhysicianAndPatient } from "@/services/actions/conversation.action";
+import { useAuth } from "@clerk/nextjs";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import Select from "@mui/material/Select";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 const names = ["Generated Soap notes", "Note2", "Note3", "Note4"];
 const Page = () => {
+  const { userId } = useAuth();
   const params: any = useParams();
-  const { notes: transcribtionNotes, transcription } = useTranscription();
+  const {
+    notes: soapNotes,
+    transcription,
+    setNotes: setSoapNotes,
+  } = useTranscription();
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const [notesLoading, setNotesLoading] = useState(false);
   const foundedUser: any = patientsList.find((user) => user.id == params.Id);
   const [notes, setNotes] = useState<any>("Generated Soap notes");
   const [messages, setMessages] = useState<any>([]);
@@ -32,8 +40,33 @@ const Page = () => {
   };
   console.log(
     "Transcription Notes in patient====>",
-    transcribtionNotes && JSON.parse(transcribtionNotes)
+    soapNotes && JSON.parse(soapNotes)
   );
+
+  const getCoversation = async () => {
+    try {
+      setNotesLoading(true);
+      const result = await getConversationByPhysicianAndPatient(
+        userId as string,
+        params.Id
+      );
+      console.log("result===>", result);
+      if (result.conversations.length === 0) {
+        setNotesLoading(false);
+        setSoapNotes("");
+      } else {
+        setSoapNotes(result.conversations[0].Doctor_Patient_Discussion);
+        setNotesLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setNotesLoading(false);
+    }
+  };
+  useEffect(() => {
+    getCoversation();
+  }, []);
+
   return (
     <div>
       <PatientSubHeader foundedUser={foundedUser} />
@@ -94,7 +127,7 @@ const Page = () => {
               className=" flex items-center justify-between gap-10 mt-6 md:flex-row flex-col"
             >
               <ConversationArea transcription={transcription} />
-              <GeneratedSoap notes={transcribtionNotes} />
+              <GeneratedSoap notes={soapNotes} loading={notesLoading} />
             </motion.div>
           )}
         </AnimatePresence>

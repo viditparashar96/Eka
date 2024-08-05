@@ -16,6 +16,7 @@ interface TranscriptionContextProps {
   loading: boolean;
   status: string;
   notes: string;
+  setNotes: React.Dispatch<React.SetStateAction<string>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setPatientName: React.Dispatch<React.SetStateAction<string>>;
   setDob: React.Dispatch<React.SetStateAction<string>>;
@@ -133,6 +134,11 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
       const blob = audioBlob || file;
       reader.readAsDataURL(blob!);
 
+      console.log("handleGenerateNote Clicked");
+      setNotes(""); // Clear notes before processing
+      setStatus("Generating Transcription...");
+      setLoading(true);
+
       reader.onloadend = async () => {
         const base64Audio = reader.result as string;
         const payload = {
@@ -143,9 +149,6 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         };
 
         try {
-          setLoading(true);
-          setStatus("Generating Transcription...");
-
           const response = await fetch("/api/transcribe", {
             method: "POST",
             headers: {
@@ -162,20 +165,30 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
             const decodedChunk = decoder.decode(result?.value);
             const parsedChunk = JSON.parse(decodedChunk);
+
             if (parsedChunk.user) {
               console.log("User Created");
               router.push(`/patient/${parsedChunk.user.id}`);
             } else if (parsedChunk.transcription) {
               setTranscription(parsedChunk.transcription);
               setStatus("Generating Notes...");
-            } else if (parsedChunk.Notes) {
+            } else if (parsedChunk.Notes && parsedChunk.patientId) {
+              // if (notes.length > 0) {
+              //   setStatus("Completed");
+              //   resolve({ name: "Notes" });
+              //   console.log("Notes already in state", notes);
+              //   return; // Exit the promise after resolving
+              // }
               setNotes(parsedChunk.Notes);
               setStatus("Completed");
+              router.push(`/patient/${parsedChunk.patientId}`);
               resolve({ name: "Notes" });
+              return; // Exit the promise after resolving
             } else if (parsedChunk.error) {
               console.log(parsedChunk.error);
               setStatus("Error");
               reject(new Error(parsedChunk.error));
+              return; // Exit the promise after rejecting
             }
           }
 
@@ -198,7 +211,7 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     toast.promise(promise, {
       loading: `Generating ${status}...`,
-      success: (status) => `Notes has been added`,
+      success: () => `Notes have been added`,
       error: "Error",
     });
   };
@@ -223,6 +236,7 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
         setTranscription,
         setOpen,
         setFile,
+        setNotes,
         handleDialogClose,
         handleDialogOpen,
         setAudioBlob,

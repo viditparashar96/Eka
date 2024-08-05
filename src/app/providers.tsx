@@ -1,6 +1,6 @@
 "use client";
 
-import store from "@/store/store";
+import { store } from "@/store/store";
 import theme from "@/theme";
 import { ThemeProvider } from "@emotion/react";
 import { Provider } from "react-redux";

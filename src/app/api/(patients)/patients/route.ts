@@ -18,6 +18,9 @@ export const GET = async (req: NextRequest) => {
       where: {
         physicianId: currentPhycian.id,
       },
+      orderBy: {
+        visitDay: "desc",
+      },
     });
 
     return NextResponse.json({ patients }, { status: 200 });

@@ -1,12 +1,17 @@
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import SaveIcon from "@mui/icons-material/Save";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
 
 interface ConversationAreaProps {
   notes: string;
+  loading: boolean;
 }
 
-export default function GeneratedSoap({ notes }: ConversationAreaProps) {
+export default function GeneratedSoap({
+  notes,
+  loading,
+}: ConversationAreaProps) {
   const [parsedNotes, setParsedNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   useEffect(() => {
@@ -83,24 +88,32 @@ export default function GeneratedSoap({ notes }: ConversationAreaProps) {
           />
         )}
       </div>
-      {isEditing ? (
-        <textarea
-          value={parsedNotes}
-          onChange={handleChange}
-          className="w-full h-64 p-2 rounded whitespace-pre-wrap"
-        />
-      ) : (
-        <div className="w-full h-64 p-2 rounded overflow-auto whitespace-pre-wrap">
-          {parsedNotes.split("\n").map((line, index) =>
-            line.startsWith("**") ? (
-              <p key={index} className="font-bold">
-                {line.replace(/\*\*/g, "")}
-              </p>
-            ) : (
-              <p key={index}>{line}</p>
-            )
-          )}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <CircularProgress />
         </div>
+      ) : (
+        <>
+          {isEditing ? (
+            <textarea
+              value={parsedNotes}
+              onChange={handleChange}
+              className="w-full h-64 p-2 rounded whitespace-pre-wrap"
+            />
+          ) : (
+            <div className="w-full h-64 p-2 rounded overflow-auto whitespace-pre-wrap">
+              {parsedNotes.split("\n").map((line, index) =>
+                line.startsWith("**") ? (
+                  <p key={index} className="font-bold">
+                    {line.replace(/\*\*/g, "")}
+                  </p>
+                ) : (
+                  <p key={index}>{line}</p>
+                )
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -16,6 +16,7 @@ const PatientInfoDialog = () => {
     setDob,
     handleDialogClose,
     handleGenerateNote,
+    setNotes,
   } = useTranscription();
   return (
     <Dialog open={open} onClose={handleDialogClose} fullWidth>
@@ -56,6 +57,7 @@ const PatientInfoDialog = () => {
         <Button
           onClick={() => {
             setOpen(false);
+            setNotes("");
             handleGenerateNote(true);
           }}
         >
@@ -64,6 +66,7 @@ const PatientInfoDialog = () => {
         <Button
           onClick={() => {
             setOpen(false);
+            setNotes("");
             handleGenerateNote(false);
           }}
         >

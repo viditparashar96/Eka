@@ -1,20 +1,24 @@
 "use client";
 import { getPatientsbyPhysician } from "@/services/actions/patient.action";
+import { setPatients } from "@/store/patientsSlice";
 import { Patient } from "@/types";
 import { useAuth } from "@clerk/nextjs";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import SearchIcon from "@mui/icons-material/Search";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Avatar from "../avatar";
 const Sidebar = () => {
+  const patients = useSelector((state: any) => state.patients.patients);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-  const [patients, setPatients] = useState<Patient[]>([]);
   const [search, setSearch] = useState("");
   const { userId } = useAuth();
   const handleSeach = (e: any) => {
     setSearch(e.target.value);
     setPatients(
-      patients.filter((patient) =>
+      patients.filter((patient: Patient) =>
         patient.name.toLowerCase().includes(e.target.value.toLowerCase())
       )
     );
@@ -27,7 +31,7 @@ const Sidebar = () => {
         const result = await getPatientsbyPhysician(userId as string);
         console.log("result===>", result);
         if (result.patients) {
-          setPatients(result.patients);
+          dispatch(setPatients(result.patients));
           setLoading(false);
         }
       } catch (error) {
@@ -35,7 +39,7 @@ const Sidebar = () => {
         setLoading(false);
       }
     })();
-  }, [userId]);
+  }, [userId, dispatch]);
 
   return (
     <div
@@ -64,11 +68,11 @@ const Sidebar = () => {
       <div className="space-y-2">
         {loading ? (
           <div className="flex justify-center items-center h-40">
-            <div className="w-10 h-10 border-2 border-t-2 border-blue-500 rounded-full animate-spin"></div>
+            <CircularProgress />
           </div>
         ) : (
           <>
-            {patients.map((patient, index) => (
+            {patients.map((patient: Patient, index: number) => (
               <Avatar key={index} patient={patient} />
             ))}
           </>

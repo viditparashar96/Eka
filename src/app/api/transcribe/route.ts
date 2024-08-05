@@ -15,6 +15,8 @@ export const POST = async (req: NextRequest) => {
         await cosmosSingleton.initialize();
         const contentType = req.headers.get("content-type");
         const container = cosmosSingleton.getContainer();
+        console.log("Cosmos Container===>", container);
+
         if (contentType?.includes("application/json")) {
           const { audioBlob, patientName, dob, clerkId } = await req.json();
           console.log("patientName===>", patientName);
@@ -154,6 +156,7 @@ export const POST = async (req: NextRequest) => {
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
+                  patientId: patient.id,
                   Notes: completionResponse.data.choices[0].message.content,
                 })
               )
