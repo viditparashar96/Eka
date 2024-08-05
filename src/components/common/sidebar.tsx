@@ -71,11 +71,11 @@ const Sidebar = () => {
             <CircularProgress />
           </div>
         ) : (
-          <>
+          <div className=" flex gap-4 flex-col">
             {patients.map((patient: Patient, index: number) => (
               <Avatar key={index} patient={patient} />
             ))}
-          </>
+          </div>
         )}
       </div>
     </div>

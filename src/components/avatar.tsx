@@ -6,14 +6,13 @@ export interface AvatarProps {
 }
 const Avatar = ({ patient }: AvatarProps) => {
   return (
-    <Link href={`/patient/${patient.id}`} className=" bg-gray-100 rounded">
-      <div className="flex items-center p-2 bg-gray-100 rounded">
+    <Link href={`/patient/${patient.id}`} className=" bg-gray-200 rounded ">
+      <div className="flex items-center p-2 rounded">
         <div className="flex items-center justify-center w-8 h-8 mr-2 text-white bg-blue-600 rounded-full">
           {patient.name.charAt(0)}
         </div>
         <span>{patient.name}</span>
       </div>
-      adasd
     </Link>
   );
 };
