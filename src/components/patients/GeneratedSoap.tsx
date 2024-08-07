@@ -1,24 +1,44 @@
+import { useTranscription } from "@/contexts/TranscriptionContext";
+import { formatNotes, parseFormattedNotes } from "@/lib/utils";
+import { updateConversationNotes } from "@/services/actions/conversation.action";
+import { useAuth } from "@clerk/nextjs";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import SaveIcon from "@mui/icons-material/Save";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
 
 interface ConversationAreaProps {
-  notes: string;
+  notes: any;
   loading: boolean;
+  pateintId: string;
 }
 
 export default function GeneratedSoap({
   notes,
   loading,
+  pateintId,
 }: ConversationAreaProps) {
+  const { loading: transcriptionLoading } = useTranscription();
+  const { userId } = useAuth();
   const [parsedNotes, setParsedNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  console.log("notes in Generated Soap Notes===>", notes);
+
   useEffect(() => {
     try {
-      const notesObj = JSON.parse(notes);
+      let notesStr = notes.Doctor_Patient_Discussion;
+
+      // Check and remove the ```json``` block if present
+      const jsonRegex = /```json\n([\s\S]*?)\n```/;
+      const match = notesStr.match(jsonRegex);
+      if (match) {
+        notesStr = match[1];
+      }
+
+      const notesObj = JSON.parse(notesStr);
       const discussionObj = notesObj.Doctor_Patient_Discussion || notesObj;
       const formattedNotes = formatNotes(discussionObj);
+      console.log("formattedNotes===>", formattedNotes);
       setParsedNotes(formattedNotes);
     } catch (error) {
       console.error("Error parsing notes:", error);
@@ -26,42 +46,6 @@ export default function GeneratedSoap({
     }
   }, [notes]);
 
-  const formatNotes = (obj: any, indent = 0): string => {
-    let result = "";
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-        const indentation = "  ".repeat(indent);
-
-        if (indent === 0) {
-          result += `**${key}**\n`;
-        } else {
-          result += `${indentation}${key}:`;
-        }
-
-        if (Array.isArray(value)) {
-          result +=
-            "\n" +
-            value
-              .map((item) => {
-                if (typeof item === "object" && item !== null) {
-                  return Object.entries(item)
-                    .map(([k, v]) => `${indentation}  • ${k}: ${v}`)
-                    .join("\n");
-                }
-                return `${indentation}  • ${item}`;
-              })
-              .join("\n") +
-            "\n";
-        } else if (typeof value === "object" && value !== null) {
-          result += "\n" + formatNotes(value, indent + 1);
-        } else {
-          result += value ? ` ${value}\n` : " Not Provided\n";
-        }
-      }
-    }
-    return result;
-  };
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };
@@ -70,8 +54,24 @@ export default function GeneratedSoap({
     setParsedNotes(e.target.value);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Implement save functionality here
+
+    try {
+      const updatedNotesObj = parseFormattedNotes(parsedNotes);
+      const updatedNotesStr = JSON.stringify(updatedNotesObj, null, 2);
+      console.log("Updated Notes JSON===>", updatedNotesStr);
+      const result = await updateConversationNotes({
+        notes: parsedNotes,
+        conversationId: notes.id,
+        patientId: pateintId,
+        clerkId: userId as string,
+      });
+      console.log("result===>", result);
+    } catch (error) {
+      console.log("Error saving notes:", error);
+    }
+
     setIsEditing(false);
   };
 
@@ -102,7 +102,7 @@ export default function GeneratedSoap({
             />
           ) : (
             <div className="w-full h-64 p-2 rounded overflow-auto whitespace-pre-wrap">
-              {parsedNotes.split("\n").map((line, index) =>
+              {parsedNotes?.split("\n").map((line, index) =>
                 line.startsWith("**") ? (
                   <p key={index} className="font-bold">
                     {line.replace(/\*\*/g, "")}

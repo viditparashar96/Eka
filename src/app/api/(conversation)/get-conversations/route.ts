@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const GET = async (req: NextRequest) => {
   try {
     await cosmosSingleton.initialize();
-    const container = cosmosSingleton.getContainer();
+    const container = await cosmosSingleton.getContainer("Conversation");
     console.log("Cosmos Container in get conversation===>", container);
 
     const search_params = req.nextUrl.searchParams;

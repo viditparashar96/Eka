@@ -44,13 +44,13 @@ export const TranscriptionProvider: React.FC<{ children: React.ReactNode }> = ({
   const { isLoaded, userId, sessionId, getToken } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
+  const [notes, setNotes] = useState<any>();
 
   const [patientName, setPatientName] = useState<string>("");
   const [dob, setDob] = useState<string>("");
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [transcription, setTranscription] = useState<string>("");
+  const [transcription, setTranscription] = useState<any>();
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [open, setOpen] = useState(false);

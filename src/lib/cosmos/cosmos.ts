@@ -2,43 +2,50 @@ import { CosmosClient } from "@azure/cosmos";
 
 class CosmosSingleton {
   private database: any;
-  private container: any;
+  private containers: { [key: string]: any };
+  private client: CosmosClient;
+
   constructor() {
     this.database = null;
-    this.container = null;
+    this.containers = {};
+    this.client = new CosmosClient(process.env.COSMOSDB_CONNECTION_STRING!);
   }
 
   async initialize() {
-    if (!this.database || !this.container) {
+    if (!this.database) {
       try {
         const databaseName = process.env.COSMOSDB_DATABASE_NAME!;
-        const containerName = process.env.COSMOSDB_CONTAINER_NAME!;
-        const client = new CosmosClient(
-          process.env.COSMOSDB_CONNECTION_STRING!
-        );
-        const database = client.database(databaseName);
-        const container = database.container(containerName);
-        await client.databases.createIfNotExists({
-          id: databaseName,
-        });
-        await database.containers.createIfNotExists({
-          id: containerName,
-          partitionKey: "/id",
-        });
+        const database = this.client.database(databaseName);
+        await this.client.databases.createIfNotExists({ id: databaseName });
         this.database = database;
-        this.container = container;
       } catch (error) {
-        console.log("error while CosmosInit===>", error);
+        console.log("Error while initializing Cosmos database:", error);
       }
     }
   }
 
-  getDatabase() {
-    return this.database;
+  async getContainer(containerName: string) {
+    if (!this.database) {
+      await this.initialize();
+    }
+
+    if (!this.containers[containerName]) {
+      try {
+        await this.database.containers.createIfNotExists({
+          id: containerName,
+          partitionKey: "/id",
+        });
+        this.containers[containerName] = this.database.container(containerName);
+      } catch (error) {
+        console.log("Error while creating/accessing Cosmos container:", error);
+      }
+    }
+
+    return this.containers[containerName];
   }
 
-  getContainer() {
-    return this.container;
+  getDatabase() {
+    return this.database;
   }
 }
 

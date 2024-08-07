@@ -1,14 +1,19 @@
 // components/ConversationArea.js
+import { useTranscription } from "@/contexts/TranscriptionContext";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import SaveIcon from "@mui/icons-material/Save";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useState } from "react";
 
 interface ConversationAreaProps {
-  transcription: string;
+  transcription: any;
+  loading: boolean;
 }
 export default function ConversationArea({
   transcription,
+  loading,
 }: ConversationAreaProps) {
+  const { loading: transcriptionLoading } = useTranscription();
   const [isEditing, setIsEditing] = useState(false);
   console.log("transcription===>", transcription);
 
@@ -43,25 +48,6 @@ export default function ConversationArea({
   //   setIsEditing(false);
   // };
 
-  const formatContent = (text: string) => {
-    return text.split("\n").map((line, index) => {
-      const [speaker, ...rest] = line.split(":");
-      if (rest.length > 0) {
-        return (
-          <div key={index}>
-            <strong>{speaker}:</strong>
-            {rest.join(":")}
-          </div>
-        );
-      }
-      return (
-        <div key={index}>
-          {line} {"\n"}
-        </div>
-      );
-    });
-  };
-
   return (
     <div className=" rounded-md border border-gray-200 bg-[#F9F9F9] p-4 w-full md:w-[50%]">
       <div className="flex justify-between items-center mb-2">
@@ -78,16 +64,24 @@ export default function ConversationArea({
           />
         )}
       </div>
-      {isEditing ? (
-        <textarea
-          value={transcription}
-          // onChange={handleChange}
-          className="w-full h-64 p-2  rounded  whitespace-pre-wrap"
-        />
-      ) : (
-        <div className="w-full h-64 p-2  rounded overflow-auto  whitespace-pre-wrap">
-          {transcription}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <CircularProgress />
         </div>
+      ) : (
+        <>
+          {isEditing ? (
+            <textarea
+              value={transcription?.transcription}
+              // onChange={handleChange}
+              className="w-full h-64 p-2  rounded  whitespace-pre-wrap"
+            />
+          ) : (
+            <div className="w-full h-64 p-2  rounded overflow-auto  whitespace-pre-wrap">
+              {transcription?.transcription}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

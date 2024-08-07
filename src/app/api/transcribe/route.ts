@@ -14,7 +14,7 @@ export const POST = async (req: NextRequest) => {
       try {
         await cosmosSingleton.initialize();
         const contentType = req.headers.get("content-type");
-        const container = cosmosSingleton.getContainer();
+        const container = await cosmosSingleton.getContainer("Conversation");
         console.log("Cosmos Container===>", container);
 
         if (contentType?.includes("application/json")) {
@@ -85,9 +85,23 @@ export const POST = async (req: NextRequest) => {
 
             const transcription = response.data.text;
 
+            const { resource: createdConversation } =
+              await container.items.create({
+                id: `${patient.id}_${currentPhycian.userId}`, // Unique identifier combining PatientId and PhysicianId
+                transcription,
+                PatientId: patient.id,
+                PhysicianId: currentPhycian.userId,
+                type: "conversation",
+                dateOfVisit: patient.visitDay,
+              });
+
+            console.log("createdConversation===>", createdConversation);
+
             // Send transcription to frontend
             controller.enqueue(
-              encoder.encode(JSON.stringify({ transcription }))
+              encoder.encode(
+                JSON.stringify({ transcription: createdConversation })
+              )
             );
 
             // Chat completion API call
@@ -100,7 +114,8 @@ export const POST = async (req: NextRequest) => {
                     content: [
                       {
                         type: "text",
-                        text: 'You are an AI assistant designed to assist doctors by transcribing and summarizing medical conversations. Given a conversation between a doctor and a patient, your task is to produce a structured medical note in the following JSON format:\n\n{\n    "Doctor_Patient_Discussion": {\n        "Initial_Observation": {\n            "Symptoms": [],\n            "Initial_Assessment": ""\n        },\n        "Medical_Examination": {\n            "Temperature":"",\n            "Blood_Pressure":"",\n            "Doctor_Assessment": "",\n            "Diagnosis": ""\n        },\n        "Treatment_Plan": {\n            "Prescription": []\n        }\n    }\n}\n\nPlease ensure the notes are detailed and accurate based on the conversation provided and do to inclued ```json in response i just need json so that i can easily parsed.',
+
+                        text: 'You are an AI assistant designed to assist doctors by transcribing and summarizing medical conversations. Given a conversation between a doctor and a patient, your task is to produce a structured SOAP note in JSON format. The JSON object should follow this structure:\n\n{\n  "soap_note": {\n    "subjective": {\n      "chief_complaint": "",\n      "history_of_present_illness": "",\n      "past_medical_history": "",\n      "family_history": "",\n      "social_history": "",\n      "review_of_systems": ""\n    },\n    "objective": {\n      "vital_signs": {\n        "temperature": "",\n        "blood_pressure": "",\n        "heart_rate": "",\n        "respiratory_rate": "",\n        "oxygen_saturation": ""\n      },\n      "physical_exam": {\n        "general_appearance": "",\n        "head": "",\n        "eyes": "",\n        "ears": "",\n        "nose": "",\n        "throat": "",\n        "neck": "",\n        "cardiovascular": "",\n        "respiratory": "",\n        "gastrointestinal": "",\n        "genitourinary": "",\n        "musculoskeletal": "",\n        "neurological": "",\n        "skin": "",\n        "psychiatric": ""\n      },\n      "lab_results": [],\n      "imaging_results": [],\n      "other_tests": []\n    },\n    "assessment": {\n      "diagnoses": []\n    },\n    "plan": {\n      "treatment": "",\n      "medications": [],\n      "follow_up": "",\n      "patient_education": ""\n    },\n    "medical_codes": {\n      "icd_10": "",\n      "cpt": ""\n    }\n  }\n}\n\nPlease ensure the JSON response is detailed, accurate, and follows the exact structure provided without any additional text.',
                       },
                     ],
                   },
@@ -129,35 +144,40 @@ export const POST = async (req: NextRequest) => {
             );
 
             // Create a new note in CosmosDB
-            // const { resource: createdNote } = await container.items.create({
-            //   Doctor_Patient_Discussion: JSON.parse(
-            //     completionResponse.data.choices[0].message.content
-            //   ),
-            //   PatientId: patient.id,
-            //   PhysicianId: currentPhycian.userId,
-            // });
-            const noteItem = {
-              id: `${patient.id}_${currentPhycian.userId}`, // Unique identifier combining PatientId and PhysicianId
+            const uuid = `${crypto.randomUUID()}|${patient.id}|${
+              currentPhycian.userId
+            }`;
+            const { resource: createdNote } = await container.items.create({
+              id: uuid, // Unique identifier combining PatientId and PhysicianId
               Doctor_Patient_Discussion:
                 completionResponse.data.choices[0].message.content,
-
               PatientId: patient.id,
               PhysicianId: currentPhycian.userId,
               type: "note",
-            };
+              dateOfVisit: patient.visitDay,
+            });
+            // const noteItem = {
+            //   id: `${patient.id}_${currentPhycian.userId}`, // Unique identifier combining PatientId and PhysicianId
+            //   Doctor_Patient_Discussion:
+            //     completionResponse.data.choices[0].message.content,
 
-            const { resource: upsertedNote } = await container.items.upsert(
-              noteItem
-            );
+            //   PatientId: patient.id,
+            //   PhysicianId: currentPhycian.userId,
+            //   type: "note",
+            // };
 
-            console.log("createdNote===>", upsertedNote);
+            // const { resource: upsertedNote } = await container.items.upsert(
+            //   noteItem
+            // );
+
+            console.log("createdNote===>", createdNote);
 
             // Send generated notes to frontend
             controller.enqueue(
               encoder.encode(
                 JSON.stringify({
                   patientId: patient.id,
-                  Notes: completionResponse.data.choices[0].message.content,
+                  Notes: createdNote,
                 })
               )
             );

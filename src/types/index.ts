@@ -3,5 +3,5 @@ export type Patient = {
   dateOfBirth: string;
   name: string;
   physicianId: number;
-  visitDays: string;
+  visitDay: string;
 };

@@ -1,4 +1,5 @@
 "use client";
+import Chatbox from "@/components/patients/chat-box/Chatbox";
 import ConversationArea from "@/components/patients/ConversationArea";
 import GeneratedSoap from "@/components/patients/GeneratedSoap";
 import PatientSubHeader from "@/components/patients/patientSubHeader";
@@ -20,6 +21,7 @@ const Page = () => {
   const {
     notes: soapNotes,
     transcription,
+    setTranscription,
     setNotes: setSoapNotes,
   } = useTranscription();
   const [isChatVisible, setIsChatVisible] = useState(false);
@@ -38,10 +40,6 @@ const Page = () => {
     setMessages([...messages, { message, type: "sent" }]);
     setMessage("");
   };
-  console.log(
-    "Transcription Notes in patient====>",
-    soapNotes && JSON.parse(soapNotes)
-  );
 
   const getCoversation = async () => {
     try {
@@ -55,7 +53,17 @@ const Page = () => {
         setNotesLoading(false);
         setSoapNotes("");
       } else {
-        setSoapNotes(result.conversations[0].Doctor_Patient_Discussion);
+        const transcription = result?.conversations.find(
+          (conversation: any) => conversation.type === "conversation"
+        );
+        console.log("transcription===>", transcription);
+        setTranscription(transcription);
+        const notes = result?.conversations.find(
+          (conversation: any) => conversation.type === "note"
+        );
+        console.log("notes===>", notes);
+        setSoapNotes(notes);
+
         setNotesLoading(false);
       }
     } catch (error) {
@@ -126,8 +134,15 @@ const Page = () => {
               transition={{ type: "spring", stiffness: 100, damping: 20 }}
               className=" flex items-center justify-between gap-10 mt-6 md:flex-row flex-col"
             >
-              <ConversationArea transcription={transcription} />
-              <GeneratedSoap notes={soapNotes} loading={notesLoading} />
+              <ConversationArea
+                transcription={transcription}
+                loading={notesLoading}
+              />
+              <GeneratedSoap
+                notes={soapNotes}
+                loading={notesLoading}
+                pateintId={params.Id}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -189,6 +204,9 @@ const Page = () => {
           </motion.div>
         </div>
       </div>
+      {/* CHAT WIDGET */}
+      {/* <ChatWidget /> */}
+      <Chatbox />
     </div>
   );
 };
